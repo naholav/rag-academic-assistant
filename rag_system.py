@@ -45,6 +45,29 @@ SEMANTIC_WEIGHT = 0.7
 BM25_WEIGHT = 0.3
 
 # ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+def get_device():
+    """Get the best available device (CUDA > MPS > CPU)"""
+    if torch.cuda.is_available():
+        return "cuda"
+    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        return "mps"
+    else:
+        return "cpu"
+
+def get_device_name():
+    """Get human-readable device name for UI display"""
+    device = get_device()
+    if device == "cuda":
+        return "GPU (CUDA)"
+    elif device == "mps":
+        return "GPU (Apple Silicon)"
+    else:
+        return "CPU"
+
+# ============================================================================
 # DOCUMENT PROCESSING MODULE
 # ============================================================================
 
@@ -316,7 +339,7 @@ class QwenGenerator:
 
     def __init__(self):
         self.model_name = "Qwen/Qwen3-4B-Instruct-2507"
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = get_device()
         self.model = None
         self.tokenizer = None
 
@@ -589,7 +612,7 @@ def main():
             st.success("✅ System Ready")
             st.metric("Documents", st.session_state.vector_store.collection.count())
             st.metric("Model", "Qwen3-4B-Instruct-2507")
-            st.metric("Device", "GPU" if torch.cuda.is_available() else "CPU")
+            st.metric("Device", get_device_name())
 
         st.divider()
 
